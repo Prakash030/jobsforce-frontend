@@ -1,19 +1,36 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import { register } from "../services";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true)
     if (password !== confirmPassword) {
-      toast.error("Password didnt match")
-      return;
+      setIsLoading(false)
+      toast.error("Password doesnt match!!")
+      return
     }
-    console.log(`Email: ${email}, Password: ${password}, Confirm Password: ${confirmPassword}`);
+    const res = await register({ name, email, password })
+    console.log('rss', res)
+    if (res && res.success) {
+      setIsLoading(false)
+      localStorage.setItem("token", res.user.token)
+      toast.success(res.message)
+      navigate("/uploader")
+    } else {
+      setIsLoading(false)
+    }
   };
 
   return (
@@ -33,6 +50,21 @@ const Register = () => {
               Create an account
             </h1>
             <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
+              <div>
+                <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  placeholder="Jobsforce"
+                  required
+                />
+              </div>
               <div>
                 <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                   Your email
@@ -100,10 +132,11 @@ const Register = () => {
                 </div>
               </div>
               <button
+              disabled={isLoading}
                 type="submit"
                 className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
               >
-                Create an account
+                {isLoading ? "Creating account..." : "Create an account"}
               </button>
               <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                 Already have an account?{" "}

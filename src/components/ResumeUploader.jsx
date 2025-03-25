@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { fetchJobCategories } from '../services';
+import { fetchJobCategories, uploadResume } from '../services';
+import { toast } from 'react-toastify';
 
 const ResumeUpload = () => {
   const [resume, setResume] = useState(null);
   const [domain, setDomain] = useState('');
   const [categories, setCategories] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
 
   useEffect(() => {
     const fetchCategories = async () => {
       const res = await fetchJobCategories();
-      if(res){
+      if (res) {
         setCategories(res)
       }
     };
-  
+
     fetchCategories();
-  
+
   }, []);
 
   const handleResumeChange = (event) => {
@@ -24,7 +28,7 @@ const ResumeUpload = () => {
       setResume(file);
     } else {
       alert('Please upload a valid PDF or DOC/DOCX file.');
-      event.target.value = null; 
+      event.target.value = null;
       setResume(null);
     }
   };
@@ -33,19 +37,31 @@ const ResumeUpload = () => {
     setDomain(event.target.value);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (!resume) {
-      alert('Please upload a resume.');
+      setError('Please upload a resume.');
       return;
     }
     if (!domain) {
-      alert('Please select a domain.');
+      setError('Please select a domain.');
       return;
     }
-    console.log('Resume:', resume);
-    console.log('Domain:', domain);
-    alert('Resume and Domain submitted (check console)');
+    try {
+      setIsLoading(true);
+      const response = await uploadResume({ file: resume, domain });
+      console.log("respimnse",response)
+      toast.success(response.message)
+      setResume(null);
+      setDomain('');
+      event.target.reset();
+    } catch (err) {
+      // Error handling
+      setError(err.response?.data?.message || 'Failed to upload resume');
+      console.error('Upload error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -84,10 +100,11 @@ const ResumeUpload = () => {
             </select>
           </div>
           <button
+            disabled={isLoading}
             type="submit"
             className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
           >
-            Submit
+            {isLoading ? 'Uploading...' : 'Submit'}
           </button>
         </form>
       </div>

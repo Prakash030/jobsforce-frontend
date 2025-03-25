@@ -1,27 +1,41 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import React from "react";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Register from "./components/Register";
 import Login from "./components/Login";
 import ResumeUpload from "./components/ResumeUploader";
-// import ResumeUpload from "./components/ResumeUpload";
-// import JobRecommendation from "./components/JobRecommendation";
+import JobRecommendations from "./components/JobRecommendationCard";
 
-function App() {
+function AppContent() {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/login");
+    }
+  }, [token, navigate]);
+
   return (
-    <Router>
     <div>
       <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
         <Route path="/signup" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/uploader" element={<ResumeUpload />} />
-        {/* <Route path="/resume-upload" element={<ResumeUpload />} />
-        <Route path="/jobs-recommendation" element={<JobsRecommendation />} /> */}
+        <Route path="/jobs" element={<JobRecommendations />} />
+        {/* Add more routes as needed */}
       </Routes>
     </div>
-  </Router>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 

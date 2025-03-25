@@ -1,14 +1,30 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
+import { login } from "../services";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    console.log(`Email: ${email}, Password: ${password}`);
+    setIsLoading(true)
+    const res = await login({ email, password })
+    if (res && res?.success) {
+      setIsLoading(false)
+      localStorage.setItem("token", res.user.token)
+      toast.success(res.message)
+      if(res.user.user.resume){
+        navigate('/jobs');
+      }else{
+        navigate("/uploader")
+      }
+    } else {
+      setIsLoading(false)
+    }
   };
 
   return (
@@ -60,10 +76,11 @@ const Login = () => {
               </div>
 
               <button
+                disabled={isLoading}
                 type="submit"
                 className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
               >
-                Login
+                {isLoading ? "Logging in..." : "Login"}
               </button>
               <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                 Do not have an account?{" "}
